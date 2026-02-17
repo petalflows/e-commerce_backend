@@ -1,11 +1,15 @@
 const express = require("express");
 const cors = require("cors");
-const supabase = require("../supabase");
-require("dotenv").config();
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 // Monthly revenue
 app.get("/api/revenue/monthly", async (req, res) => {
@@ -23,7 +27,7 @@ app.get("/api/revenue/monthly", async (req, res) => {
 
   const monthly = {};
   data.forEach((order) => {
-    const month = order.created_at.slice(0, 7); // YYYY-MM
+    const month = order.created_at.slice(0, 7);
     monthly[month] = (monthly[month] || 0) + parseFloat(order.total);
   });
 
@@ -135,7 +139,10 @@ app.get("/api/orders", async (req, res) => {
   res.json({ data, total: count, page, limit });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Only listen locally, not on Vercel
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
 
 module.exports = app;
