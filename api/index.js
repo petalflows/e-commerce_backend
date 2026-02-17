@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
+import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -11,7 +11,7 @@ function setCors(res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   setCors(res);
   if (req.method === "OPTIONS") return res.status(200).end();
 
@@ -19,19 +19,10 @@ module.exports = async function handler(req, res) {
   const path = url.pathname.replace(/^\/api\/?/, "");
 
   try {
-    // GET /api → health check
     if (!path || path === "") {
-      return res.status(200).json({ status: "ok", routes: [
-        "/api/revenue/monthly",
-        "/api/sales/category",
-        "/api/orders/status",
-        "/api/sales/region",
-        "/api/products/top",
-        "/api/orders"
-      ]});
+      return res.status(200).json({ status: "ok" });
     }
 
-    // GET /api/revenue/monthly
     if (path === "revenue/monthly") {
       const from = url.searchParams.get("from");
       const to = url.searchParams.get("to");
@@ -56,7 +47,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).json(result);
     }
 
-    // GET /api/sales/category
     if (path === "sales/category") {
       const { data: orders, error } = await supabase
         .from("orders")
@@ -75,7 +65,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).json(result);
     }
 
-    // GET /api/orders/status
     if (path === "orders/status") {
       const { data, error } = await supabase.from("orders").select("status");
       if (error) return res.status(500).json({ error: error.message });
@@ -88,7 +77,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).json(result);
     }
 
-    // GET /api/sales/region
     if (path === "sales/region") {
       const { data, error } = await supabase
         .from("orders")
@@ -107,7 +95,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).json(result);
     }
 
-    // GET /api/products/top
     if (path === "products/top") {
       const { data, error } = await supabase
         .from("orders")
@@ -130,7 +117,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).json(result);
     }
 
-    // GET /api/orders
     if (path === "orders") {
       const page = parseInt(url.searchParams.get("page")) || 1;
       const limit = parseInt(url.searchParams.get("limit")) || 20;
@@ -150,4 +136,4 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-};
+}
